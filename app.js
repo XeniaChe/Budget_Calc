@@ -131,6 +131,9 @@ var budgetController = ( function () {
                 data.allItems[type].splice(index, 1);   // SPLICE METHOD  for deleting
                 
             }
+
+
+            console.log(ids)
         },
 
 
