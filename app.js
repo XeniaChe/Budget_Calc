@@ -132,8 +132,7 @@ var budgetController = ( function () {
                 
             }
 
-
-            console.log(ids)
+            console.log(ids);
         },
 
 
