@@ -1,7 +1,8 @@
 
 
 var budgetController = ( function () {
-   
+    var test = "new line";
+    test += " addition";
 
     var Income = function (id, description, value) {
         this.id = id;
