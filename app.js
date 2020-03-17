@@ -13,19 +13,19 @@ var budgetController = ( function () {
         this.id = id;
         this.description = description;
         this.value = value;
-        this.percentage = -1;
+        this.percentages = -1;
     };
 
-    Exp.prototype.calcPercentage = function (totalInc) {
+    Exp.prototype.calcPercentages = function (totalInc) {
         if (totalInc >0) {
-            this.percentage = Math.round ((this.value/totalInc)*100);
+            this.percentages = Math.round ((this.value/totalInc)*100);
         } else {
-            this.percentage= -1;
+            this.percentages= -1;
         }
         
     };
-    Exp.prototype.getPercentage = function () {
-        return this.percentage;
+    Exp.prototype.getPercentages = function () {
+        return this.percentages;
     }
 
 
@@ -136,9 +136,19 @@ var budgetController = ( function () {
         },
 
 
-        updatePercentage: function name(params) {
-
+        calcPercentages: function () {
+            data.allItems.exp.forEach(function(cur) {
+                cur.calcPercentages(data.totals.inc);
+            })
         },
+
+        getPercentages: function () {
+            var allPercentages = data.allItems.exp.map(function (cur) {
+                return cur.getPercentages();
+            })
+            return allPercentages;             //result - an array 
+        },
+        
 
         testing: function () {
             console.log(data);     
@@ -169,7 +179,8 @@ var UIController = (function () {
         incomeLabel: '.budget__income--value',
         expensesLabel: '.budget__expenses--value',
         percentageLabel: '.budget__expenses--percentage',
-        container: '.container '
+        container: '.container ',
+        expPercLabel: '.item__percentage'
        
     }
 
@@ -243,6 +254,36 @@ var UIController = (function () {
         
          },
 
+     displayPerc: function (percentages) {
+            var fields = document.querySelectorAll(DOMstrings.expPercLabel) ;
+            
+            //second method
+            fields.forEach (function (current,index) {
+                if (percentages[index]>0) {
+                    current.textContent = percentages[index] + '%';
+                } else {
+                    current.textContent = '---';
+                }
+            })
+
+
+            /*
+            var nodeListforEach = function (nodeList, callBack) {
+                for (let i = 0; i < nodeList.length; i++) {
+                   callBack(nodeList[i], i);
+                }
+            }
+
+            nodeListforEach(fields, function (current, index) {
+                if (percentages[index]>0) {
+                    current.textContent = percentages[index] + '%';
+                } else {
+                    current.textContent = '---';
+                }
+                
+            });*/
+          },
+
 
       getDOMstrings: function () {
           return DOMstrings;                  /// to expose DOMstrings to the outside of UIController == to the PUBLIC
@@ -287,7 +328,22 @@ var controller = (function (budgetCtrl, UICtrl) {
        
     };
     
-   
+   var updatePercentages = function () {
+
+    //1. calc percentage
+        budgetCtrl.calcPercentages();
+
+    //2. read the percentage from the Budget controller
+        var percentages = budgetCtrl.getPercentages();
+
+    //3. Update the UI with new percentage
+        UICtrl.displayPerc(percentages);
+
+
+        // console.log(percentages);
+        };
+
+
 
     // custom function for press add__btn and keyPress event 
     var ctrlAddItem = function () {
@@ -313,8 +369,8 @@ var controller = (function (budgetCtrl, UICtrl) {
         //5. Calculate and update budget
         updateBudget();
 
-        // . Calc and update the percentages
-            updatePercentage();
+        // 6. Calc and update the percentages
+         updatePercentages();
         }
         
         // console.log('it works'); 
@@ -341,8 +397,8 @@ var controller = (function (budgetCtrl, UICtrl) {
             updateBudget();
 
             // 4. Calc and update the percentages
-            updatePercentage();
-            // console.log (type, ID)
+            updatePercentages();
+         
         }
     }
 
