@@ -180,9 +180,31 @@ var UIController = (function () {
         expensesLabel: '.budget__expenses--value',
         percentageLabel: '.budget__expenses--percentage',
         container: '.container ',
-        expPercLabel: '.item__percentage'
+        expPercLabel: '.item__percentage', 
+        dateLabel: '.budget__title--month',
+        buttonLabel:'.ion-ios-checkmark-outline'
        
-    }
+    }; 
+
+    var formatNumber = function (num, type) {
+        var num, numSplit, int, dec
+        
+
+        // exactly 2 decimal points
+        num = Math.abs(num);       // abs - delete a sing "+ or -"
+        num = num.toFixed(2);     // 2 decimal numbers after the number
+
+        // a coma after thounsands 
+        numSplit = num.split('.');    // result -an array ['', ''] 230,475-> ['230', '475']
+        int = numSplit[0];            // result a stringh wich is a number 230 475-> 23 so int.lenght = 3
+        if (int.length > 3 )  {
+            int = int.substr(0, int.length - 3)+ ',' + int.substr(int.length-3, 3);
+        }
+        // + or - before number
+        dec = numSplit[1];     // decimal part, goes after ','
+
+        return  (type === 'exp' ? '-' : '+') + ' '+ int +'.' + dec; 
+      };
 
 
    //  PUBLIC functions and variables
@@ -216,7 +238,7 @@ var UIController = (function () {
           var newHtml;
           newHtml = html.replace('%id%', obj.id);                         //CHANGE HTML CONTENT
           newHtml = newHtml.replace('%description%', obj.description);
-          newHtml = newHtml.replace('%value%', obj.value );
+          newHtml = newHtml.replace('%value%', formatNumber(obj.value, type));
 
           //3  Insert HTML into DOM
          document.querySelector(element).insertAdjacentHTML('beforeend',  newHtml );
@@ -241,9 +263,11 @@ var UIController = (function () {
 
 
         displayBudget: function (obj) {
-           document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget;
-           document.querySelector(DOMstrings.incomeLabel).textContent = obj.totalIncomes;
-           document.querySelector(DOMstrings.expensesLabel).textContent = obj.totalExpenses;
+            var type;
+            obj.budget >0 ? type=== 'inc' : type==='exp';
+           document.querySelector(DOMstrings.budgetLabel).textContent = formatNumber (obj.budget, type);
+           document.querySelector(DOMstrings.incomeLabel).textContent = formatNumber (obj.totalIncomes, 'inc');
+           document.querySelector(DOMstrings.expensesLabel).textContent =formatNumber (obj.totalExpenses, 'exp');
 
            if (obj.percentage > 0 ) {
             document.querySelector(DOMstrings.percentageLabel).textContent = obj.percentage + '%';
@@ -284,6 +308,31 @@ var UIController = (function () {
             });*/
           },
 
+    displayDate: function () {
+        var now, year, month, day,months;
+
+         now = new Date(); 
+         months = [ 'January', 'February', 'March', 'April' , 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+         year = now.getFullYear(); 
+         month = now.getMonth();
+         day = now.getUTCDay(); 
+         document.querySelector(DOMstrings.dateLabel).textContent = months[month] + ' '+ year ;
+ 
+        
+    },
+    changeType: function () {
+        var fields = document.querySelectorAll( 
+            DOMstrings.inputType + ',' +
+            DOMstrings.inputDescription+ ',' +
+            DOMstrings.inputValue
+        );
+
+        fields.forEach(function (current) {
+           current.classList.toggle('red-focus');
+        });
+
+        document.querySelector(DOMstrings.buttonLabel).classList.toggle('red');
+    },
 
       getDOMstrings: function () {
           return DOMstrings;                  /// to expose DOMstrings to the outside of UIController == to the PUBLIC
@@ -310,8 +359,8 @@ var controller = (function (budgetCtrl, UICtrl) {
                 ctrlAddItem();   // calling this function if IF statement is true
             }
         });
-
         document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
+        document.querySelector(DOM.inputType ).addEventListener('change', UICtrl.changeType)
      
     }
 
@@ -376,7 +425,7 @@ var controller = (function (budgetCtrl, UICtrl) {
         // console.log('it works'); 
     }
 
-    var ctrlDeleteItem = function (event) {    // Deleting item event CallBack function
+    var ctrlDeleteItem = function (event) {    // git checkout Deleting item event CallBack function
         var itemId, splitID, type, ID;
 
         itemId = event.target.parentNode.parentNode.parentNode.parentNode.id;   // to get the ID of the el-t that was clicked on
@@ -412,6 +461,7 @@ var controller = (function (budgetCtrl, UICtrl) {
                 percentage: -1  
              })
              EventListeners();   // CAlling the EVENTLISTENERS function and storing it inside INIT
+             UICtrl.displayDate();
          }
      }
 
